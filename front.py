@@ -46,7 +46,7 @@ def pivot(dataframe, values, index, columns):
                 print("Warning : invalid column name :" + elt)
                 check = False
         if check:
-            table = pd.pivot_table(dataframe, values=v, index=i, columns=c, aggfunc=np.sum, fill_value=0)
+            table = pd.pivot(dataframe, values=v, index=i, columns=c)
             print("\n --- PIVOT --- \n")
             print(table)
             return table

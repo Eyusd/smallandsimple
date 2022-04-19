@@ -46,8 +46,34 @@ def pivot(dataframe, values, index, columns):
                 print("Warning : invalid column name :" + elt)
                 check = False
         if check:
-            table = pd.pivot(dataframe, values=v, index=i, columns=c)
-            print("\n --- PIVOT --- \n")
+            try:
+                table = pd.pivot(dataframe, values=v, index=i, columns=c)
+                print("\n --- PIVOT --- \n")
+                print(table)
+                return table
+            except:
+                return 'duplicate_error'
+
+def pivot_table(dataframe, values, index, columns):
+    check = True
+    if dataframe is not None:
+        v = values.split(',')
+        i = index.split(',')
+        c = columns.split(',')
+        bag = set()
+        for elt in v:
+            bag.add(elt)
+        for elt in i:
+            bag.add(elt)
+        for elt in c:
+            bag.add(elt)
+        for elt in bag:
+            if elt not in xl.keys():
+                print("Warning : invalid column name :" + elt)
+                check = False
+        if check:
+            table = pd.pivot_table(dataframe, values=v, index=i, columns=c, aggfunc=np.sum, fill_value=0)
+            print("\n --- PIVOT TABLE --- \n")
             print(table)
             return table
 
@@ -68,8 +94,6 @@ def drop(dataframe, names):
             return dropped
 
 
-
-
 sg.theme("Black")
 sg.set_options(font=("Consolas", int(13*r)), scaling=scaling)
 
@@ -77,7 +101,7 @@ function_keys = ['-NULL-', '-PIVOT-', '-SHOWCOLUMNS-', '-DROPCOLUMNS-']
 
 frame1 = [[sg.Radio('Show columns name', 1, key=function_keys[2])],
           [sg.Radio('Drop colums', 1, key=function_keys[3]), sg.Frame('Names', [[sg.Input(key=function_keys[3]+'NAMES-', size=(int(10*r),int(10*r)))]], font=('Consolas', int(10*r)))],
-          [sg.Radio('Pivot',1, key=function_keys[1], default=True), sg.Frame('Values', [[sg.Input(key=function_keys[0]+'VALUES-', size=(int(10*r),int(10*r)))]], font=('Consolas', int(10*r))), sg.Frame('Index', [[sg.Input(key=function_keys[0]+'INDEX-', size=(int(10*r),int(10*r)))]], font=('Consolas', int(10*r))), sg.Frame('Columns', [[sg.Input(key=function_keys[0]+'COLUMNS-', size=(int(10*r),int(10*r)))]], font=('Consolas', int(10*r)))],
+          [sg.Radio('Pivot',1, key=function_keys[1], default=True), sg.Frame('Values', [[sg.Input(key=function_keys[1]+'VALUES-', size=(int(10*r),int(10*r)))]], font=('Consolas', int(10*r))), sg.Frame('Index', [[sg.Input(key=function_keys[1]+'INDEX-', size=(int(10*r),int(10*r)))]], font=('Consolas', int(10*r))), sg.Frame('Columns', [[sg.Input(key=function_keys[1]+'COLUMNS-', size=(int(10*r),int(10*r)))]], font=('Consolas', int(10*r)))],
           [sg.Radio('Coming Soon', 1, key=function_keys[0])]]
 
 file_open = [[sg.Input(key='-INPUT-'),sg.FileBrowse(file_types=(("Excel Files", "*.xlsx"), ("ALL Files", "*.*"))),sg.Button("Open"),]]
@@ -115,10 +139,13 @@ while True:
                 print("Error: ", e)
     if event == 'Execute':
         if values[function_keys[1]]:
-            try:
-                res = pivot(xl, values[function_keys[1]+'VALUES-'], values[function_keys[1]+'INDEX-'], values[function_keys[1]+'COLUMNS-'])
-            except:
-                print("Error")
+            temp = pivot(xl, values[function_keys[1]+'VALUES-'], values[function_keys[1]+'INDEX-'], values[function_keys[1]+'COLUMNS-'])
+            if temp == 'duplicate_error':
+                if sg.PopupYesNo('Duplicate value found in index, would you like to perform a Pivot Table ?'):
+                    print("Retrying with pivot table")
+                    res = pivot_table(xl, values[function_keys[1]+'VALUES-'], values[function_keys[1]+'INDEX-'], values[function_keys[1]+'COLUMNS-'])
+            else:
+                res = temp
         if values[function_keys[2]]:
             try:
                 print(xl.columns)
